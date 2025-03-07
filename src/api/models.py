@@ -7,7 +7,7 @@ class User(db.Model):
     __tablename__ = "user"
     userID = db.Column(db.Integer,unique=True, primary_key=True)
     name = db.Column(db.String(20), nullable=False)
-    email = db.Column(db.String(80), nullable=False)
+    email = db.Column(db.String(80), unique=True, nullable=False)
     password = db.Column(db.String(20), nullable=False)
     groups = db.relationship("Group_to_user", backref="user")
     expenses = db.relationship("Expenses", backref="user")
@@ -22,10 +22,8 @@ class User(db.Model):
         return {
             "Name": self.name,
             "Email": self.email,
-            "Groups": self.groups,
-            "Expenses": self.expenses,
-            "Debts": self.debts,
-            "Payments": self.payments
+            "ID": self.userID
+            
             
         }
     
@@ -36,7 +34,7 @@ class Group(db.Model):
     group_name = db.Column(db.String(20), nullable=False)
     created_at = db.Column(db.DateTime) 
     members = db.relationship("Group_to_user")
-    total_Amount = db.Column(db.Integer, nullable=False)
+    total_amount = db.Column(db.Integer, nullable=False)
     expenses = db.Column(db.Integer, db.ForeignKey("expenses.expenseID"))
     
     def __repr__(self):
@@ -47,7 +45,7 @@ class Group(db.Model):
             "Id": self.groupID,
             "Name": self.group_name,
             "Members": self.members,
-            "Total Amount": self.total_Amount,
+            "Total Amount": self.total_amount,
             "Expenses": self.expenses
             
         }
@@ -135,6 +133,7 @@ class Expenses(db.Model):
             "Group": self.groupID,
             "Amount": self.amount,
             "Description": self.description,
+            "ID": self.expenseID
             
         }
     
@@ -165,9 +164,9 @@ class Debts(db.Model):
 class Messages (db.Model):
     __tablename__="messages"
     id=db.Column(db.Integer, unique=True, primary_key=True)
-    sent_to_userid=db.relationship("User", backref="messages")
+    sent_to_userid = db.Column(db.Integer, db.ForeignKey("user.userID")) 
     from_userid=db.Column(db.Integer, db.ForeignKey("user.userID"))
-    message=db.Column(db.String(200))
+    message=db.Column(db.String(200))   
     sent_at=db.Column(db.DateTime)
 
 
@@ -199,8 +198,9 @@ class Objectives(db.Model):
 
     def serialize(self):
         return {
-            "Objective": self.name,
-            "Amount": self.targetAmount,
+            "id": self.id,
+            "Name": self.name,
+            "Amount": self.target_amount,
             "Completed": self.is_completed
         }
     
@@ -213,10 +213,10 @@ class ObjectivesContributions(db.Model):
     userID = db.Column(db.Integer, db.ForeignKey("user.userID"))
     amount_contributed=db.Column(db.Integer, nullable=False)
     contributed_at=db.Column(db.DateTime)
-
+    contribution = db.relationship("Objectives", backref="contributed_to")
     
     def __repr__(self):
-        return f'<ObjectivesContributions {self.ObjectiveID}>'
+        return f'<ObjectivesContributions {self.objectiveID}>'
 
     def serialize(self):
         return {
